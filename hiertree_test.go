@@ -67,6 +67,10 @@ func TestList(t *testing.T) {
 			paths: []string{"foo>", "[foo/]bar>", "[foo/bar/]baz>", "[foo/bar/baz/]bud*", "[foo/bar/]qux>", "[foo/bar/qux/]qup*"},
 		},
 		{
+			elems: mkElems([]elem{"baz/bud", "baz/bud/eee/fff", "qux/qup", "qux/qup/eee/fff"}),
+			paths: []string{"baz>", "[baz/]bud*>", "[baz/bud/]eee>", "[baz/bud/eee/]fff*", "qux>", "[qux/]qup*>", "[qux/qup/]eee>", "[qux/qup/eee/]fff*"},
+		},
+		{
 			elems: mkElems([]elem{"foo/bar/baz/qux", "foo/bar"}),
 			paths: []string{"foo>", "[foo/]bar*>", "[foo/bar/]baz>", "[foo/bar/baz/]qux*"},
 		},

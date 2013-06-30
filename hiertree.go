@@ -93,7 +93,9 @@ func tree(elems []Elem, prefix string) (roots []Node, size int, err error) {
 	var cur *Node
 	var saveCur = func() {
 		if cur != nil {
-			size++
+			if cur.Elem != nil {
+				size++
+			}
 			roots = append(roots, *cur)
 		}
 		cur = nil
