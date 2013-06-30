@@ -40,43 +40,43 @@ func TestList(t *testing.T) {
 		},
 		{
 			elems: mkElems([]elem{"foo", "foo/bar"}),
-			paths: []string{"foo*", "[foo/]bar*"},
+			paths: []string{"foo*>", "[foo/]bar*"},
 		},
 		{
 			elems: mkElems([]elem{"foo/bar", "foo/baz"}),
-			paths: []string{"foo", "[foo/]bar*", "[foo/]baz*"},
+			paths: []string{"foo>", "[foo/]bar*", "[foo/]baz*"},
 		},
 		{
 			elems: mkElems([]elem{"foo", "foo/bar", "foo/baz"}),
-			paths: []string{"foo*", "[foo/]bar*", "[foo/]baz*"},
+			paths: []string{"foo*>", "[foo/]bar*", "[foo/]baz*"},
 		},
 		{
 			elems: mkElems([]elem{"foo/bar/baz"}),
-			paths: []string{"foo", "[foo/]bar", "[foo/bar/]baz*"},
+			paths: []string{"foo>", "[foo/]bar>", "[foo/bar/]baz*"},
 		},
 		{
 			elems: mkElems([]elem{"foo/bar", "foo/bar/baz"}),
-			paths: []string{"foo", "[foo/]bar*", "[foo/bar/]baz*"},
+			paths: []string{"foo>", "[foo/]bar*>", "[foo/bar/]baz*"},
 		},
 		{
 			elems: mkElems([]elem{"foo/bar/baz", "foo/bar/qux"}),
-			paths: []string{"foo", "[foo/]bar", "[foo/bar/]baz*", "[foo/bar/]qux*"},
+			paths: []string{"foo>", "[foo/]bar>", "[foo/bar/]baz*", "[foo/bar/]qux*"},
 		},
 		{
 			elems: mkElems([]elem{"foo/bar/baz/bud", "foo/bar/qux/qup"}),
-			paths: []string{"foo", "[foo/]bar", "[foo/bar/]baz", "[foo/bar/baz/]bud*", "[foo/bar/]qux", "[foo/bar/qux/]qup*"},
+			paths: []string{"foo>", "[foo/]bar>", "[foo/bar/]baz>", "[foo/bar/baz/]bud*", "[foo/bar/]qux>", "[foo/bar/qux/]qup*"},
 		},
 		{
 			elems: mkElems([]elem{"foo/bar/baz/qux", "foo/bar"}),
-			paths: []string{"foo", "[foo/]bar*", "[foo/bar/]baz", "[foo/bar/baz/]qux*"},
+			paths: []string{"foo>", "[foo/]bar*>", "[foo/bar/]baz>", "[foo/bar/baz/]qux*"},
 		},
 		{
 			elems: mkElems([]elem{"foo/bar", "baz/qux"}),
-			paths: []string{"baz", "[baz/]qux*", "foo", "[foo/]bar*"},
+			paths: []string{"baz>", "[baz/]qux*", "foo>", "[foo/]bar*"},
 		},
 		{
 			elems: mkElems([]elem{"foo/bar", "baz/qux", "foo/baz"}),
-			paths: []string{"baz", "[baz/]qux*", "foo", "[foo/]bar*", "[foo/]baz*"},
+			paths: []string{"baz>", "[baz/]qux*", "foo>", "[foo/]bar*", "[foo/]baz*"},
 		},
 
 		// errors

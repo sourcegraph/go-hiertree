@@ -25,6 +25,9 @@ type Entry struct {
 
 	// Elem is the element that exists at this position in the tree, or nil if the entry is a stub
 	Elem Elem
+
+	// Leaf is true iff this entry is a leaf node (i.e., it has no children)
+	Leaf bool
 }
 
 // List arranges elems into a flat list based on their hierarchical paths.
@@ -44,6 +47,7 @@ func list(nodes []Node, parent string) (entries []Entry, err error) {
 			Parent: parent,
 			Name:   n.Name,
 			Elem:   n.Elem,
+			Leaf:   len(n.Children) == 0,
 		})
 		var prefix string
 		if parent == "" {
@@ -156,6 +160,9 @@ func Inspect(entries []Entry) (paths []string) {
 		paths[i] += e.Name
 		if e.Elem != nil {
 			paths[i] += "*"
+		}
+		if !e.Leaf {
+			paths[i] += ">"
 		}
 	}
 	return
