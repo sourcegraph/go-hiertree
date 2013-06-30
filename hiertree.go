@@ -144,3 +144,19 @@ func split(path string) (root, rest string) {
 	}
 	return parts[0], parts[1]
 }
+
+// Inspect returns a list of path strings of the form "[parent/]path*", where the asterisk indicates
+// that the entry is not a stub.
+func Inspect(entries []Entry) (paths []string) {
+	paths = make([]string, len(entries))
+	for i, e := range entries {
+		if e.Parent != "" {
+			paths[i] += "[" + e.Parent + "/]"
+		}
+		paths[i] += e.Name
+		if e.Elem != nil {
+			paths[i] += "*"
+		}
+	}
+	return
+}

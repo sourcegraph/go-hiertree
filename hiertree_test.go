@@ -111,21 +111,11 @@ func TestList(t *testing.T) {
 			continue
 		}
 		entries, err := List(test.elems)
-		paths := make([]string, len(entries))
-		for i, e := range entries {
-			if e.Parent != "" {
-				paths[i] += "[" + e.Parent + "/]"
-			}
-			paths[i] += e.Name
-			if e.Elem != nil {
-				paths[i] += "*"
-			}
-		}
 		label := fmt.Sprintf("elems#%d %v:", i, test.elems)
 		if test.error == "" {
 			if err != nil {
 				t.Errorf("%s: unexpected error %q", label, err)
-			} else if !reflect.DeepEqual(test.paths, paths) {
+			} else if paths := Inspect(entries); !reflect.DeepEqual(test.paths, paths) {
 				t.Errorf("%s:\nwant %v\n got %v", label, test.paths, paths)
 			}
 		} else {
