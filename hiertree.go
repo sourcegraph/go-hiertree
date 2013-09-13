@@ -36,6 +36,8 @@ func List(elems []Elem) (entries []Entry, err error) {
 	nodes, err = Tree(elems)
 	if err == nil {
 		entries, err = list(nodes, "")
+	} else {
+		entries, _ = list(nodes, "")
 	}
 	return
 }
