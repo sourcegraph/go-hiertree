@@ -31,19 +31,16 @@ type Entry struct {
 }
 
 // List arranges elems into a flat list based on their hierarchical paths.
-func List(elems []Elem) (entries []Entry, err error) {
-	var nodes []Node
-	nodes, err = Tree(elems)
-	if err == nil {
-		entries, err = list(nodes, "")
-	} else {
-		entries, _ = list(nodes, "")
+func List(elems []Elem) ([]Entry, error) {
+	nodes, err := Tree(elems)
+	if err != nil {
+		return nil, err
 	}
-	return
+	return list(nodes, "")
 }
 
-func list(nodes []Node, parent string) (entries []Entry, err error) {
-	var err2 error
+func list(nodes []Node, parent string) ([]Entry, error) {
+	var entries []Entry
 	for _, n := range nodes {
 		entries = append(entries, Entry{
 			Parent: parent,
@@ -58,13 +55,13 @@ func list(nodes []Node, parent string) (entries []Entry, err error) {
 			prefix = parent + "/" + n.Name
 		}
 		var children []Entry
-		children, err2 = list(n.Children, prefix)
-		if err2 != nil && err == nil {
-			err = err2
+		children, err := list(n.Children, prefix)
+		if err != nil {
+			return nil, err
 		}
 		entries = append(entries, children...)
 	}
-	return
+	return entries, nil
 }
 
 // Node represents a node in the resulting tree. Elem is nil if the entry is a stub (i.e., no
@@ -81,13 +78,12 @@ type Node struct {
 }
 
 // Tree arranges elems into a tree based on their hierarchical paths.
-func Tree(elems []Elem) (nodes []Node, err error) {
-	nodes, _, err = tree(elems, "")
-	return
+func Tree(elems []Elem) ([]Node, error) {
+	nodes, _, err := tree(elems, "")
+	return nodes, err
 }
 
 func tree(elems []Elem, prefix string) (roots []Node, size int, err error) {
-	var err2 error
 	es := elemlist(elems)
 	if prefix == "" { // only sort on first call
 		sort.Sort(es)
@@ -107,15 +103,15 @@ func tree(elems []Elem, prefix string) (roots []Node, size int, err error) {
 		e := es[i]
 		path := e.HierPath()
 		if !strings.HasPrefix(path, prefix) {
-			return
+			return roots, size, nil
 		}
 		relpath := path[len(prefix):]
 		root, rest := split(relpath)
 		if root == "" && err == nil {
-			err = fmt.Errorf("invalid node path: %q", path)
+			return nil, 0, fmt.Errorf("invalid node path: %q", path)
 		}
 		if cur != nil && cur.Name == relpath && err == nil {
-			err = fmt.Errorf("duplicate node path: %q", path)
+			return nil, 0, fmt.Errorf("duplicate node path: %q", path)
 		}
 		if cur == nil || cur.Name != root {
 			saveCur()
@@ -125,16 +121,16 @@ func tree(elems []Elem, prefix string) (roots []Node, size int, err error) {
 			cur.Elem = e
 		}
 		var n int
-		cur.Children, n, err2 = tree(elems[i:], prefix+root+"/")
-		if err2 != nil && err == nil {
-			err = err2
+		cur.Children, n, err = tree(elems[i:], prefix+root+"/")
+		if err != nil {
+			return nil, 0, err
 		}
 		size += n
 		if n > 0 {
 			i += n - 1
 		}
 	}
-	return
+	return roots, size, nil
 }
 
 type elemlist []Elem
