@@ -9,9 +9,10 @@ import (
 
 // Elem represents an object with a path.
 type Elem interface {
-	// HierPath is the object's path in the tree, with path components separated by slashes
-	// (e.g., "a/b/c").
-	HierPath() string
+	// PathComponents are the components of the object's hierarchical path. For
+	// a typical slash-separated element at "a/b/c", this would be []string{"a",
+	// "b", "c"}.
+	PathComponents() []string
 }
 
 // Entry represents an entry in the resulting hierarchical tree. Elem is nil if the entry is a
@@ -79,13 +80,13 @@ type Node struct {
 
 // Tree arranges elems into a tree based on their hierarchical paths.
 func Tree(elems []Elem) ([]Node, error) {
-	nodes, _, err := tree(elems, "")
+	nodes, _, err := tree(elems, nil)
 	return nodes, err
 }
 
-func tree(elems []Elem, prefix string) (roots []Node, size int, err error) {
+func tree(elems []Elem, prefix []string) (roots []Node, size int, err error) {
 	es := elemlist(elems)
-	if prefix == "" { // only sort on first call
+	if len(prefix) == 0 { // only sort on first call
 		sort.Sort(es)
 	}
 	var cur *Node
@@ -101,27 +102,31 @@ func tree(elems []Elem, prefix string) (roots []Node, size int, err error) {
 	defer saveCur()
 	for i := 0; i < len(es); i++ {
 		e := es[i]
-		path := e.HierPath()
-		if !strings.HasPrefix(path, prefix) {
+		path := e.PathComponents()
+		if !hasPrefix(path, prefix) {
 			return roots, size, nil
 		}
+		var rest []string
 		relpath := path[len(prefix):]
-		root, rest := split(relpath)
-		if root == "" && err == nil {
-			return nil, 0, fmt.Errorf("invalid node path: %q", path)
+		if len(relpath) == 0 {
+			return nil, 0, nil
 		}
-		if cur != nil && cur.Name == relpath && err == nil {
+		root := relpath[0]
+		if len(relpath) > 1 {
+			rest = relpath[1:]
+		}
+		if cur != nil && cur.Name == root && len(rest) == 0 {
 			return nil, 0, fmt.Errorf("duplicate node path: %q", path)
 		}
 		if cur == nil || cur.Name != root {
 			saveCur()
 			cur = &Node{Name: root}
 		}
-		if rest == "" {
+		if len(rest) == 0 {
 			cur.Elem = e
 		}
 		var n int
-		cur.Children, n, err = tree(elems[i:], prefix+root+"/")
+		cur.Children, n, err = tree(elems[i:], joined(prefix, root))
 		if err != nil {
 			return nil, 0, err
 		}
@@ -133,11 +138,19 @@ func tree(elems []Elem, prefix string) (roots []Node, size int, err error) {
 	return roots, size, nil
 }
 
+func joined(a []string, b string) []string {
+	v := append([]string{}, a...)
+	v = append(v, b)
+	return v
+}
+
 type elemlist []Elem
 
-func (vs elemlist) Len() int           { return len(vs) }
-func (vs elemlist) Swap(i, j int)      { vs[i], vs[j] = vs[j], vs[i] }
-func (vs elemlist) Less(i, j int) bool { return vs[i].HierPath() < vs[j].HierPath() }
+func (vs elemlist) Len() int      { return len(vs) }
+func (vs elemlist) Swap(i, j int) { vs[i], vs[j] = vs[j], vs[i] }
+func (vs elemlist) Less(i, j int) bool {
+	return compare(vs[i].PathComponents(), vs[j].PathComponents()) < 0
+}
 
 // split splits path immediately following the first slash. The returned values have the property
 // that path = root+"/"+rest.
@@ -147,6 +160,46 @@ func split(path string) (root, rest string) {
 		return parts[0], ""
 	}
 	return parts[0], parts[1]
+}
+
+// join the components of a path, using a sentinel character that is unlikely to
+// appear in individual path components. TODO(sqs): this is a hack; actually use
+// PathComponents directly.
+func join(components []string) string {
+	return strings.Join(components, "•")
+}
+
+func hasPrefix(ss, prefix []string) bool {
+	if len(ss) < len(prefix) {
+		return false
+	}
+	for i, s := range prefix {
+		if ss[i] != s {
+			return false
+		}
+	}
+	return true
+}
+
+// compare returns an integer comparing two string slices lexicographically. The
+// result will be 0 if a==b, -1 if a < b, and +1 if a > b. A nil argument is
+// equivalent to an empty slice.
+func compare(a, b []string) int {
+	if len(b) > len(a) {
+		return -1 * compare(b, a)
+	}
+	for i, e := range b {
+		if a[i] < e {
+			return -1
+		}
+		if a[i] > e {
+			return 1
+		}
+	}
+	if len(a) == len(b) {
+		return 0
+	}
+	return 1
 }
 
 // Inspect returns a list of path strings of the form "[parent/]path*", where the asterisk indicates

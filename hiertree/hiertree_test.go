@@ -12,8 +12,8 @@ var only = flag.Int("test.only", -1, "only run the TestList test row at this ind
 
 type elem string
 
-func (e elem) HierPath() string {
-	return string(e)
+func (e elem) PathComponents() []string {
+	return strings.Split(string(e), "/")
 }
 
 func mkElems(in []elem) (out []Elem) {
@@ -85,28 +85,8 @@ func TestList(t *testing.T) {
 
 		// errors
 		{
-			elems: mkElems([]elem{"/"}),
-			error: "invalid",
-		},
-		{
-			elems: mkElems([]elem{""}),
-			error: "invalid",
-		},
-		{
-			elems: mkElems([]elem{"", ""}),
-			error: "invalid",
-		},
-		{
-			elems: mkElems([]elem{"bar//"}),
-			error: "invalid",
-		},
-		{
 			elems: mkElems([]elem{"bar", "bar"}),
 			error: "duplicate",
-		},
-		{
-			elems: mkElems([]elem{"bar/", "bar"}),
-			error: "invalid",
 		},
 	}
 
