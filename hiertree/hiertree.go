@@ -2,7 +2,7 @@
 package hiertree
 
 import (
-	"errors"
+	"fmt"
 	"sort"
 	"strings"
 )
@@ -112,10 +112,10 @@ func tree(elems []Elem, prefix string) (roots []Node, size int, err error) {
 		relpath := path[len(prefix):]
 		root, rest := split(relpath)
 		if root == "" && err == nil {
-			err = errors.New("invalid node path: " + path)
+			err = fmt.Errorf("invalid node path: %q", path)
 		}
 		if cur != nil && cur.Name == relpath && err == nil {
-			err = errors.New("duplicate node path: " + path)
+			err = fmt.Errorf("duplicate node path: %q", path)
 		}
 		if cur == nil || cur.Name != root {
 			saveCur()
